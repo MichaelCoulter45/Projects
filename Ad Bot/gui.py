@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 import tkinter as tk
 import ttkbootstrap as ttk
+from tkinter import ttk, filedialog, simpledialog, messagebox
 from ttkbootstrap.constants import *
 from ttkbootstrap.dialogs import Messagebox
 import subprocess
