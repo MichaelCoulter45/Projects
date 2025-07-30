@@ -1,10 +1,12 @@
-import tkinter as tk
-from tkinter import ttk
-import subprocess
-import cv2
-import numpy as np
 import os
 import time
+import cv2
+import numpy as np
+import tkinter as tk
+import ttkbootstrap as ttk
+from ttkbootstrap.constants import *
+from ttkbootstrap.dialogs import Messagebox
+import subprocess
 
 ADB_PATH = "C:/Users/power/AppData/Local/Android/Sdk/platform-tools/adb.exe"
 TEMPLATE_PATHS = [
@@ -126,6 +128,6 @@ class BotGUI:
 
 
 if __name__ == "__main__":
-    root = tk.Tk()
+    root = ttk.Window(themename="solar") # "darkly", "cyborg", "superhero", "solar", etc.
     app = BotGUI(root)
     root.mainloop()
