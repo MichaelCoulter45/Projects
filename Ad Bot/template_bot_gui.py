@@ -5,10 +5,51 @@ import pyautogui
 import time
 import threading
 import pytesseract
+import subprocess
+import cv2
+import numpy as np
 
+
+
+###### OCR vvvvvv #################################################################################
 # Tell pytesseract where the executable is
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
+def ocr_and_click(target_word):
+    # Step 1: Screenshot from ADB
+    subprocess.run(["adb", "exec-out", "screencap", "-p"], stdust=open("screen.png", "wb"))
+    
+    #Step 2: Load and preprocess image
+    image = cv2.imread("screen.png")
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    
+    # Step 3: OCR with bounding boxes
+    data = pytesseract.image_to_data(gray, output_type=pytesseract.Output.DICT)
+    
+    for i in range(len(data['text'])):
+        word = data['text'][i].strip().lower()
+        if target_word.lower() in word:
+            x = data['left'][i]
+            y = data['top'][i]
+            w = data['width'][i]
+            h = data['height'][i]
+            
+            # Draw rectangle for debugging (optional)
+            # cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            # cv2.imwrite("debug.png", image)
+            
+            # Step 4: Click at the center of the detected word
+            center_x = x + w // 2
+            center_y = y + h // 2
+            pyautogui.moveTo(center_x, center_y)
+            pyautogui.click()
+            print(f"✅ Clicked on '{target_word}' at({center_x, center_y})")
+            return True
+    print(f"❌ '{target_word}' not found in OCR output.")
+    return False
+
+
+###### OCR ^^^^^^ #################################################################################
 # === GUI SETUP ===
 root = tk.Tk()
 root.title("Template Bot")
