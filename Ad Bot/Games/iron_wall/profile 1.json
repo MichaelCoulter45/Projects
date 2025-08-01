@@ -1,1 +1,14 @@
-[{"word": "Reward Granted X", "mode": "infinite", "count": 0, "active": true}]
+{
+    "ocr_keywords": [
+        "upgrade"
+    ],
+    "template_paths": [
+        "C:/Users/power/git/Projects/Ad Bot/Games/iron_wall/ad_ready.png",
+        "C:/Users/power/git/Projects/Ad Bot/Games/iron_wall/gold_left.png",
+        "C:/Users/power/git/Projects/Ad Bot/Games/iron_wall/gold_right.png",
+        "C:/Users/power/git/Projects/Ad Bot/Games/iron_wall/return_home.png",
+        "C:/Users/power/git/Projects/Ad Bot/Games/iron_wall/summon2.png",
+        "C:/Users/power/git/Projects/Ad Bot/Games/iron_wall/upgrade.png",
+        "C:/Users/power/git/Projects/Ad Bot/Games/iron_wall/yes.png"
+    ]
+}

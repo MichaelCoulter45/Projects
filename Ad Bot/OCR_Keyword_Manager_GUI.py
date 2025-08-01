@@ -1,23 +1,113 @@
-import os
-import cv2
-import pytesseract
-import numpy as np
-import time
-import random
 import tkinter as tk
-from tkinter import filedialog, messagebox, ttk
-from threading import Thread
+from tkinter import ttk, filedialog, messagebox
 import json
+import os
 import subprocess
 import threading
-from PIL import ImageGrab, Image
+import time
+import cv2
+import numpy as np
+import pytesseract
+from PIL import ImageGrab, Image, ImageTk
+
+pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
 # OCR and PNG matching settings
 ocr_keywords = []
 template_paths = []
 running = False
 
-# Save JSON profiles
+
+def get_phone_screen():
+    os.system("adb exec-out screencap -p > screen.png")
+    try:
+        return Image.open("screen.png")
+    except Exception as e:
+        print(f"[!] Failed to open screen.png: {e}")
+        return None
+
+def update_preview():
+    try:
+        screen = get_phone_screen()
+        resized = screen.resize((480, 960)) # change to resize
+        preview_img = ImageTk.PhotoImage(resized)
+        preview_label.config(image=preview_img)
+        preview_label.image = preview_img
+    except Exception as e:
+        print(f"Error updating preview: {e}")
+        
+# --- Capture and Processing Functions ---
+def capture_screen():
+    img = get_phone_screen()
+    try:
+        screen = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+    except Exception as e:
+        print(f"[!] Failed to convery screenshot to BGR: {e}")
+        return None
+    try:
+        # Show preview in the GUI
+        img_tk = ImageTk.PhotoImage(Image.fromarray(screen).resize((300, 200)))
+        preview_label.imgtk = img_tk # Prevents garbage collection
+        preview_label.configure(image=img_tk)
+        return screen
+    except Exception as e:
+        print(f"[!] Failed to update preview: {e}")
+    return screen
+
+def match_templates(screen):
+    for path in template_paths:
+        if not os.path.exists(path):
+            continue
+        template = cv2.imread(path, 0)
+        gray = cv2.cvtColor(screen, cv2.COLOR_BGR2GRAY)
+        result = cv2.matchTemplate(gray, template, cv2.TM_CCOEFF_NORMED)
+        loc = np.where(result >= 0.8)
+        if np.any(result >= 0.8):
+            for pt in zip(*loc[::-1]):
+                cv2.rectangle(screen, pt, (pt[0] + template.shape[1], pt[1] + template.shape[0]), (0, 255, 0), 2)
+                print(f"Matched template: {os.path.basename(path)} at {pt}")
+    return screen
+
+def extract_text(screen):
+    gray = cv2.cvtColor(screen, cv2.COLOR_BGR2GRAY)
+    text = pytesseract.image_to_string(gray)
+    return text
+
+# --- Bot Logic ---
+def run_bot():
+    global running
+    running = True
+    def task():
+        while running:
+            screen = capture_screen()
+            if screen is None:
+                print("[!] Screen capture failed. Retrying...")
+                time.sleep(capture_interval.get())
+                continue
+            if run_png.get():
+                screen = match_templates(screen)
+            if run_ocr.get():
+                text = extract_text(screen)
+                for word in ocr_keywords:
+                    if word.lower() in text.lower():
+                        print(f"Keyword matched: {word}")
+                        
+            preview_img = Image.fromarray(cv2.cvtColor(screen, cv2.COLOR_BGR2RGB))
+            preview_img = preview_img.resize((300,200))
+            img_tk = ImageTk.PhotoImage(preview_img)
+            preview_label.imgtk = img_tk
+            preview_label.configure(image=img_tk)
+            
+            if not background_mode.get():
+                break
+            time.sleep(capture_interval.get())
+    threading.Thread(target=task, daemon=True).start()
+
+def stop_bot():
+    global running
+    running = False
+
+# --- Save/Load Profile ---
 def save_profile():
     profile = {
         "ocr_keywords": ocr_keywords,
@@ -27,185 +117,96 @@ def save_profile():
     if file_path:
         with open(file_path, "w") as f:
             json.dump(profile, f, indent=4)
-            messagebox.showinfo("Saved", "Profile saved successfully!")
+        messagebox.showinfo("Saved", "Profile saved successfully!")
 
-# Load JSON Profiles
 def load_profile():
     global ocr_keywords, template_paths
-    file_path = filedialog.askopenfilename(filetype=[("JSON Files", "*.json")])
+    file_path = filedialog.askopenfilename(filetypes=[("JSON Files", ".json")])
     if file_path:
         with open(file_path, "r") as f:
             profile = json.load(f)
         ocr_keywords = profile.get("ocr_keywords", [])
         template_paths = profile.get("template_paths", [])
-        
+
         keyword_list.delete(0, tk.END)
         for word in ocr_keywords:
             keyword_list.insert(tk.END, word)
-            
+
         png_list.delete(0, tk.END)
         for path in template_paths:
             png_list.insert(tk.END, os.path.basename(path))
-            
+
         messagebox.showinfo("Loaded", "Profile loaded successfully!")
 
-# === Config ===
-ADB_PATH = "C:/Users/power/AppData/Local/Android/Sdk/platform-tools/adb.exe"
-CONFIDENCE_THRESHOLD = 0.9
-TAP_DELAY = 1.5
-
-# === Global State ===
-template_paths = []
-ocr_keywords = []
+# --- GUI Setup ---
 root = tk.Tk()
+root.title("OCR + PNG Bot")
+
 run_ocr = tk.BooleanVar(value=True)
 run_png = tk.BooleanVar(value=True)
-run_forever = tk.BooleanVar(value=True)
-ocr_runs = tk.IntVar(value=1)
-png_runs = tk.IntVar(value=1)
+background_mode = tk.BooleanVar(value=True)
+capture_interval = tk.DoubleVar(value=1.0)
 
-# === Core Functions ===
-def capture_screen(filename="screen.png"):
-    os.system(f"{ADB_PATH} exec-out screencap -p > {filename}")
-    return cv2.imread(filename)
+ttk.Label(root, text="OCR Keywords").pack()
+keyword_list = tk.Listbox(root)
+keyword_list.pack()
 
-def find_button_location(screen, template_path):
-    template = cv2.imread(template_path)
-    if template is None:
-        print(f"[!] Could not read template: {template_path}")
-        return None
+preview_label = tk.Label(root)
+preview_label.pack(pady=10)
 
-    result = cv2.matchTemplate(screen, template, cv2.TM_CCOEFF_NORMED)
-    _, max_val, _, max_loc = cv2.minMaxLoc(result)
-
-    print(f"→ {template_path} match confidence: {max_val:.3f}")
-    if max_val >= CONFIDENCE_THRESHOLD:
-        h, w = template.shape[:2]
-        # Add slight randomization to tapping area
-        offset_x = random.randint(-w // 6, w // 6)
-        offset_y = random.randint(-h // 6, h // 6)
-        center_x = max_loc[0] + w // 2 + offset_x
-        center_y = max_loc[1] + h // 2 + offset_y
-        return center_x, center_y
-    return None
-
-def tap(x, y):
-    print(f"👉 Tapping at ({x}, {y})")
-    os.system(f"{ADB_PATH} shell input tap {x} {y}")
-    time.sleep(TAP_DELAY)
-
-def run_bot():
-    print("🚀 Starting bot...")
-    png_counter = 0
-    ocr_counter = 0
-
-    while run_forever.get() or (png_counter < png_runs.get() or ocr_counter < ocr_runs.get()):
-        screen = capture_screen()
-
-        if run_png.get() and (run_forever.get() or png_counter < png_runs.get()):
-            for path in template_paths:
-                coords = find_button_location(screen, path)
-                if coords:
-                    tap(*coords)
-                    png_counter += 1
-                    break
-
-        if run_ocr.get() and (run_forever.get() or ocr_counter < ocr_runs.get()):
-            gray = cv2.cvtColor(screen, cv2.COLOR_BGR2GRAY)
-            text = pytesseract.image_to_string(gray).lower()
-            print(f"[OCR] Found text:\n{text}")
-            for keyword in ocr_keywords:
-                if keyword.lower() in text:
-                    print(f"[OCR] Match found for: {keyword}")
-                    # Simulate center tap (approximation)
-                    tap(screen.shape[1] // 2 + random.randint(-50, 50),
-                        screen.shape[0] // 2 + random.randint(-50, 50))
-                    ocr_counter += 1
-                    break
-
-        time.sleep(2)
-
-    print("✅ Bot finished running.")
-
-# === GUI Functions ===
-def add_png():
-    files = filedialog.askopenfilenames(filetypes=[("Image Files", "*.png;*.jpg")])
-    for file in files:
-        if file not in template_paths:
-            template_paths.append(file)
-            png_list.insert(tk.END, os.path.basename(file))
-
-def remove_selected_png():
-    selected = png_list.curselection()
-    for index in reversed(selected):
-        template_paths.pop(index)
-        png_list.delete(index)
 
 def add_keyword():
-    word = keyword_entry.get().strip()
-    if word and word not in ocr_keywords:
-        ocr_keywords.append(word)
-        keyword_list.insert(tk.END, word)
+    keyword = keyword_entry.get()
+    if keyword:
+        ocr_keywords.append(keyword)
+        keyword_list.insert(tk.END, keyword)
         keyword_entry.delete(0, tk.END)
 
-def remove_selected_keyword():
+def remove_keyword():
     selected = keyword_list.curselection()
-    for index in reversed(selected):
-        ocr_keywords.pop(index)
-        keyword_list.delete(index)
+    for i in reversed(selected):
+        del ocr_keywords[i]
+        keyword_list.delete(i)
 
-def start_threaded_bot():
-    t = Thread(target=run_bot)
-    t.daemon = True
-    t.start()
+keyword_entry = ttk.Entry(root)
+keyword_entry.pack()
+ttk.Button(root, text="Add Keyword", command=add_keyword).pack()
+ttk.Button(root, text="Remove Selected", command=remove_keyword).pack()
 
-# === GUI ===
-#root = tk.Tk()
-root.title("📱 Android Auto Tap Bot")
-root.geometry("600x500")
+ttk.Label(root, text="PNG Templates").pack()
+png_list = tk.Listbox(root)
+png_list.pack()
 
-# PNG Frame
-png_frame = ttk.LabelFrame(root, text="🖼️ PNG Image Templates")
-png_frame.pack(fill="x", padx=10, pady=5)
 
-png_list = tk.Listbox(png_frame, height=5)
-png_list.pack(side="left", fill="x", expand=True, padx=5)
-btn_frame = tk.Frame(png_frame)
-btn_frame.pack(side="right", fill="y")
-ttk.Button(btn_frame, text="Add", command=add_png).pack(fill="x", pady=2)
-ttk.Button(btn_frame, text="Remove", command=remove_selected_png).pack(fill="x", pady=2)
+def add_template():
+    paths = filedialog.askopenfilenames(filetypes=[("PNG Files", "*.png")])
+    for path in paths:
+        template_paths.append(path)
+        png_list.insert(tk.END, os.path.basename(path))
 
-# Keyword Frame
-keyword_frame = ttk.LabelFrame(root, text="🔤 OCR Keywords")
-keyword_frame.pack(fill="x", padx=10, pady=5)
+def remove_template():
+    selected = png_list.curselection()
+    for i in reversed(selected):
+        del template_paths[i]
+        png_list.delete(i)
 
-keyword_list = tk.Listbox(keyword_frame, height=5)
-keyword_list.pack(side="left", fill="x", expand=True, padx=5)
-key_btn_frame = tk.Frame(keyword_frame)
-key_btn_frame.pack(side="right", fill="y")
-keyword_entry = ttk.Entry(key_btn_frame)
-keyword_entry.pack(fill="x", pady=2)
-ttk.Button(key_btn_frame, text="Add", command=add_keyword).pack(fill="x", pady=2)
-ttk.Button(key_btn_frame, text="Remove", command=remove_selected_keyword).pack(fill="x", pady=2)
+ttk.Button(root, text="Add Template(s)", command=add_template).pack()
+ttk.Button(root, text="Remove Selected", command=remove_template).pack()
 
-# Settings Frame
-settings_frame = ttk.LabelFrame(root, text="⚙️ Settings")
-settings_frame.pack(fill="x", padx=10, pady=5)
+# --- Options ---
+ttk.Checkbutton(root, text="Run OCR", variable=run_ocr).pack()
+ttk.Checkbutton(root, text="Run PNG Match", variable=run_png).pack()
+ttk.Checkbutton(root, text="Background Mode", variable=background_mode).pack()
 
-ttk.Checkbutton(settings_frame, text="Enable PNG Scanning", variable=run_png).pack(anchor="w")
-ttk.Checkbutton(settings_frame, text="Enable OCR Scanning", variable=run_ocr).pack(anchor="w")
-ttk.Checkbutton(settings_frame, text="Run Forever", variable=run_forever).pack(anchor="w")
+interval_frame = ttk.Frame(root)
+interval_frame.pack()
+ttk.Label(interval_frame, text="Capture Interval (s)").pack(side="left")
+ttk.Entry(interval_frame, textvariable=capture_interval, width=5).pack(side="left")
 
-ocr_spin = ttk.Spinbox(settings_frame, from_=1, to=1000, textvariable=ocr_runs, width=5)
-png_spin = ttk.Spinbox(settings_frame, from_=1, to=1000, textvariable=png_runs, width=5)
-ttk.Label(settings_frame, text="OCR Run Count").pack(anchor="w")
-ocr_spin.pack(anchor="w")
-ttk.Label(settings_frame, text="PNG Run Count").pack(anchor="w")
-png_spin.pack(anchor="w")
+# --- Buttons ---
+ttk.Button(root, text="▶ Start Bot", command=run_bot).pack(pady=5)
+ttk.Button(root, text="⏹ Stop Bot", command=stop_bot).pack()
 
-# Start Button
-ttk.Button(root, text="🚀 Start Bot", command=start_threaded_bot).pack(pady=15)
-# Save/Load Profile Buttons
 profile_frame = ttk.Frame(root)
 profile_frame.pack(pady=5)
 ttk.Button(profile_frame, text="💾 Save Profile", command=save_profile).pack(side="left", padx=10)
