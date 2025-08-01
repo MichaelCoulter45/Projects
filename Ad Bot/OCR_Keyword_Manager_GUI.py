@@ -7,6 +7,47 @@ import random
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 from threading import Thread
+import json
+import subprocess
+import threading
+from PIL import ImageGrab, Image
+
+# OCR and PNG matching settings
+ocr_keywords = []
+template_paths = []
+running = False
+
+# Save JSON profiles
+def save_profile():
+    profile = {
+        "ocr_keywords": ocr_keywords,
+        "template_paths": template_paths
+    }
+    file_path = filedialog.asksaveasfilename(defaultextension=".json", filetypes=[("JSON Files", "*.json")])
+    if file_path:
+        with open(file_path, "w") as f:
+            json.dump(profile, f, indent=4)
+            messagebox.showinfo("Saved", "Profile saved successfully!")
+
+# Load JSON Profiles
+def load_profile():
+    global ocr_keywords, template_paths
+    file_path = filedialog.askopenfilename(filetype=[("JSON Files", "*.json")])
+    if file_path:
+        with open(file_path, "r") as f:
+            profile = json.load(f)
+        ocr_keywords = profile.get("ocr_keywords", [])
+        template_paths = profile.get("template_paths", [])
+        
+        keyword_list.delete(0, tk.END)
+        for word in ocr_keywords:
+            keyword_list.insert(tk.END, word)
+            
+        png_list.delete(0, tk.END)
+        for path in template_paths:
+            png_list.insert(tk.END, os.path.basename(path))
+            
+        messagebox.showinfo("Loaded", "Profile loaded successfully!")
 
 # === Config ===
 ADB_PATH = "C:/Users/power/AppData/Local/Android/Sdk/platform-tools/adb.exe"
@@ -164,5 +205,10 @@ png_spin.pack(anchor="w")
 
 # Start Button
 ttk.Button(root, text="🚀 Start Bot", command=start_threaded_bot).pack(pady=15)
+# Save/Load Profile Buttons
+profile_frame = ttk.Frame(root)
+profile_frame.pack(pady=5)
+ttk.Button(profile_frame, text="💾 Save Profile", command=save_profile).pack(side="left", padx=10)
+ttk.Button(profile_frame, text="📂 Load Profile", command=load_profile).pack(side="left", padx=10)
 
 root.mainloop()
