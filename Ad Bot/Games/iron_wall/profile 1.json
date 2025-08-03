@@ -1,14 +1,16 @@
 {
-    "ocr_keywords": [
-        "upgrade"
-    ],
+    "ocr_keywords": [],
     "template_paths": [
         "C:/Users/power/git/Projects/Ad Bot/Games/iron_wall/ad_ready.png",
         "C:/Users/power/git/Projects/Ad Bot/Games/iron_wall/gold_left.png",
         "C:/Users/power/git/Projects/Ad Bot/Games/iron_wall/gold_right.png",
-        "C:/Users/power/git/Projects/Ad Bot/Games/iron_wall/return_home.png",
         "C:/Users/power/git/Projects/Ad Bot/Games/iron_wall/summon2.png",
         "C:/Users/power/git/Projects/Ad Bot/Games/iron_wall/upgrade.png",
-        "C:/Users/power/git/Projects/Ad Bot/Games/iron_wall/yes.png"
+        "C:/Users/power/git/Projects/Ad Bot/Games/iron_wall/yes.png",
+        "C:/Users/power/git/Projects/Ad Bot/Games/iron_wall/continue.png",
+        "C:/Users/power/git/Projects/Ad Bot/Games/iron_wall/x_dark.png",
+        "C:/Users/power/git/Projects/Ad Bot/Games/iron_wall/x_light.png",
+        "C:/Users/power/git/Projects/Ad Bot/Games/iron_wall/x_reward_granted_dark.png",
+        "C:/Users/power/git/Projects/Ad Bot/Games/iron_wall/x_reward_granted_light.png"
     ]
 }
