@@ -3,6 +3,7 @@ import threading
 import pyautogui
 import time
 import keyboard
+# BASH: pyinstaller --noconfirm --clean --onefile auto_clicker.py
 
 clicking = False
 hotkey_start = 'S'
@@ -46,12 +47,12 @@ root.title("Simple Auto Clicker")
 
 tk.Label(root, text="Click Delay (sec):").grid(row=0, column=0, padx=5, pady=5)
 delay_entry = tk.Entry(root)
-delay_entry.insert(0, "0.1")
+delay_entry.insert(0, "0.001")
 delay_entry.grid(row=0, column=1, padx=5, pady=5)
 
 tk.Label(root, text="Duration (sec):").grid(row=1, column=0, padx=5, pady=5)
 duration_entry = tk.Entry(root)
-duration_entry.insert(0, "5")
+duration_entry.insert(0, "600")
 duration_entry.grid(row=1, column=1, padx=5, pady=5)
 
 start_button = tk.Button(root, text="Start", command=start_clicking)
