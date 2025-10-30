@@ -1,4 +1,5 @@
 import cv2
+import mss
 import numpy as np
 import os
 import time
@@ -23,14 +24,15 @@ Goals for this program:
 
 BASE_DIR = os.path.join(os.path.dirname(__file__))
 TEMPLATE_DIR = os.path.join(BASE_DIR, r"templates")
-
-bot_active = False
-threshold = 0.45
-cpu_cooldown = 0.1
-click_delay = 0.1
+sct = mss.mss()
 hotkey_toggle_bot = 'f8' 
+hotkey_exit_bot_view = 'Q'
 window_name = "Slime Squisher"
 
+bot_active = False
+threshold = 0.50
+cpu_cooldown = 0.00    # Max time between loops
+click_delay = 0.0      # Delay between clicks
 
 def get_window_bbox(window_name):
     hwnd = win32gui.FindWindow(None, window_name)
@@ -57,22 +59,25 @@ def load_templates(*dirs):
         for file in os.listdir(d):
             path = os.path.join(d, file)
             if os.path.isfile(path):
-                templates.append((file, path))
+                img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
+                if img is not None:
+                    templates.append((file, img))
     return templates
 
 
 templates = load_templates(TEMPLATE_DIR)
 print(f"Loaded {len(templates)} templates: ")
-for name, path in templates:
-    print(f"  {name} -> {path}")
+for name, _ in templates:
+    print(f"  {name}")
 
 
-def run_bot():
+def run_bot(): ################################################################
     keyboard.add_hotkey(hotkey_toggle_bot, toggle_bot)
     print(f"Press {hotkey_toggle_bot.upper()} to start or stop the bot!")
     
     try:
         left, top, right, bottom = get_window_bbox(window_name)
+        monitor = {"left": left, "top": top, "width": right - left, "height": bottom - top}
         print(f"Bounding window region: {left}, {top}, {right}, {bottom}")
     except Exception as e:
         print(e)
@@ -80,37 +85,47 @@ def run_bot():
     
     while True:
         if not bot_active:
-            time.sleep(0.1)
+            time.sleep(cpu_cooldown)
             continue
+        
         # Capture only the target window region
-        screen = pyautogui.screenshot(region=(left, top, right - left, bottom - top))
-        frame = cv2.cvtColor(np.array(screen), cv2.COLOR_RGB2BGR)
-        frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        frame = np.array(sct.grab(monitor))
+        frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGRA2GRAY)
         
-        for name, path in templates:
-            img_template = cv2.imread(path, cv2.IMREAD_UNCHANGED)
-            if img_template is None:
-                continue
+        best_match = {"score": 0, "coords": None, "size": None, "name": None}
+        
+        # Looping over all templates
+        for name, template_gray in templates:
+            t_h, t_w = template_gray.shape[:2]
+            result = cv2.matchTemplate(frame_gray, template_gray, cv2.TM_CCOEFF_NORMED)
+            _, max_val, _, max_loc = cv2.minMaxLoc(result)
             
-            # Convert to Gray for more stable detection
-            template_gray = cv2.cvtColor(img_template, cv2.COLOR_BGR2GRAY)
-            t_h, t_w = img_template.shape[:2]
-        
-        # Find Matches
-        result = cv2.matchTemplate(frame_gray, template_gray, cv2.TM_CCOEFF_NORMED)
-        loc = np.where(result >= threshold)
-        
-        # For every match, click the center
-        for pt in zip(*loc[::-1]):
-            x, y = pt[0] + t_w // 2 + left, pt[1] + t_h // 2 + top # adjusting coords to screen reigon
-            pyautogui.click(x, y)
+            if max_val > best_match["score"]:
+                best_match = {"score": max_val, "coords": max_loc, "size": (t_w, t_h), "name": name}
+            
+        # act on only the best match
+        if best_match["score"] >= threshold:
+            x, y = best_match["coords"]
+            t_w, t_h = best_match["size"]
+            cv2.rectangle(frame, (x,y), (x + t_w, y + t_h), (0, 255, 0), 2)
+            
+            click_x = x + t_w // 2 + left
+            click_y = y + t_h // 2 + top
+            
+            mouse_x, mouse_y = pyautogui.position()
+            pyautogui.click(click_x, click_y)
+            pyautogui.moveTo(mouse_x, mouse_y)
+            print(f"Clicked {best_match["name"]} @ ({click_x}, {click_y}) - match {best_match["score"]:.2f}")
             time.sleep(click_delay)
         
+        # cv2 Show what it's looking at
+        # cv2.imshow("Bot Vision", frame)
+        # if cv2.waitKey(1) & 0xFF == ord(hotkey_exit_bot_view):
+        #     print("Exiting bot view...")
+        #     break
+        
         time.sleep(cpu_cooldown) # Cooldown per cycle - Helps reduce CPU use
-
-
-
-
+    cv2.destroyAllWindows()
 
 
 def main():
