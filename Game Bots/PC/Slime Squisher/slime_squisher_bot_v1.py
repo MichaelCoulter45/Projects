@@ -1,3 +1,4 @@
+# slime_squisher_bot_v1 -> CV2, pyautogui
 import cv2
 import mss
 import numpy as np
