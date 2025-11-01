@@ -130,9 +130,10 @@ def verify_and_click(
                     return False
     else:
         print(f"💥💥💥 Force clicking [{best_template['name']}] — skipping verification checks.")
-        # assign dummy values so final print works
-        good_matches = -1
-        ed = -1
+        # mark as forced for logging
+        good_matches = "FORCED"
+        ed = "FORCED"
+
 
     # Passed checks OR force click
     click_x = x_full + (x1 - x0)//2 + left
@@ -149,7 +150,7 @@ def verify_and_click(
     pyautogui.click(click_x, click_y)
     pyautogui.moveTo(mx, my)
 
-    print(f"✅ Verification PASSED for [{best_template['name']}] | ORB={good_matches} | Edge={ed:.3f}")
+    print(f"✅ Verification PASSED for [{best_template['name']}] | ORB={good_matches} | Edge={ed}")
     return True
 
 # ---------------- Example usage inside your main loop ----------------
