@@ -22,7 +22,7 @@ TEMPLATE_DIR_DEAD = os.path.join(BASE_DIR, "templates", "dead")
 window_name = "Slime Squisher"
 
 SCALE = 0.5  # must match match_verify.SCALE
-THRESH_TEMPLATE = 0.55
+THRESH_TEMPLATE = 0.60
 structure_density = 0.02
 cpu_cooldown = 0.01
 click_delay = 0.01

@@ -7,8 +7,8 @@ import pyautogui
 
 # ---------- CONFIG ----------
 SCALE = 0.5                # downscale frames for matching speed, adjust
-THRESH_TEMPLATE = 0.55     # template match threshold (on resized frame)
-ORB_MATCH_THRESHOLD = 8    # min number of good ORB matches to accept
+THRESH_TEMPLATE = 0.60     # template match threshold (on resized frame)
+ORB_MATCH_THRESHOLD = 0    # min number of good ORB matches to accept
 EDGE_DENSITY_MIN = 0.05    # min edge density (alive slimes tend to have structure)
 EDGE_DENSITY_MAX = 0.5     # max edge density (avoid extremely noisy regions)
 NEGATIVE_CORRELATION = 0.90 # if puddle correlates above this, reject

@@ -3,7 +3,7 @@ import threading
 import pyautogui
 import time
 import keyboard
-# BASH: pyinstaller --noconfirm --clean --onefile auto_clicker.py
+# BASH: pyinstaller --noconfirm --clean --noconsole --onefile auto_clicker.py
 
 clicking = False
 hotkey_start = 'S'
