@@ -8,10 +8,10 @@ import time
 import win32gui
 
 # Directory to save templates
-TEMPLATE_DIR = r"C:\Users\power\git\Projects\Game Bots\PC\Slime Squisher\templates"
+TEMPLATE_DIR = r"C:\Users\power\git\Projects\Game Bots\PC"
 os.makedirs(TEMPLATE_DIR, exist_ok=True)
 
-window_name = "Slime Squisher"  # your game window
+window_name = "PegIdle"  # your game window
 
 def get_window_bbox(window_name):
     import win32gui
