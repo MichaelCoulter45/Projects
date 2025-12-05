@@ -6,7 +6,7 @@ import win32api, win32con
 
 # Global state
 clicking = False
-hotkey_toggle_bot = 'F8'
+hotkey_toggle_bot = '.'
 
 # ---------------- FAST CLICK FUNCTION ----------------
 def fast_click_loop():
