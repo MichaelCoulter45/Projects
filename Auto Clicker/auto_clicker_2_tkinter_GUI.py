@@ -1,4 +1,5 @@
 import win32gui, win32api, win32con
+import ctypes
 import tkinter as tk
 from tkinter import ttk
 import keyboard
@@ -23,8 +24,14 @@ keybind_toggle = '.'
 bot_running = True
 active = False
 delay_cpu = 0.1
-MAX_CPS = 500
+MAX_CPS = 5000
 
+
+
+# Pre-define constants for speed
+WM_LBUTTONDOWN = 0x0201
+WM_LBUTTONUP = 0x0202
+MK_LBUTTON = 0x0001
 
 #############   Functions   ############
 def start_bot():
@@ -43,7 +50,7 @@ def start_bot():
     status_label.config(text="READY", fg="blue")
     keyboard.add_hotkey(keybind_toggle, toggle_bot)
     
-    threading.Thread(target=auto_clicker_pointer, daemon=True).start()
+    threading.Thread(target=auto_clicker, daemon=True).start()
 
 
 def toggle_bot():
@@ -57,11 +64,15 @@ def toggle_bot():
         status_label.config(text="⏸️ PAUSED", fg="blue")
 
 
-def auto_clicker_pointer():
+def auto_clicker():
     """ This works even when the target window isn't in focus.
-    Thanks to win32gui.PostMessage()!"""
+    Thanks to win32gui.PostMessage(...)!"""
     global bot_running, active
-    lparam = win32api.MAKELONG(0,0)
+    click_event = ctypes.windll.user32.mouse_event
+    
+    counter = 0
+    lparam = win32api.MAKELONG(500,500)
+    # start = time.perf_counter()
     
     while bot_running:
         if not active:
@@ -74,11 +85,14 @@ def auto_clicker_pointer():
             continue
         
         cps = min(cps, MAX_CPS) # This limits the cps to MAX_CPS to prevent outragous numbers and accidentally locking the cpu.
-        delay = max(0.02, 1/cps) # Never below 20ms
+        delay = max(0.002, 1/cps) # Never below 2ms
         
-        win32gui.PostMessage(hwnd, win32con.WM_LBUTTONDOWN, win32con.MK_LBUTTON, lparam)
+        click_event(hwnd, WM_LBUTTONDOWN, MK_LBUTTON, lparam)
         time.sleep(delay)
-        win32gui.PostMessage(hwnd, win32con.WM_LBUTTONUP, 0, lparam)  
+        click_event(hwnd, WM_LBUTTONUP, 0, lparam)
+    #     # counter += 1
+    # end = time.perf_counter()
+    # print(f"Done! Calculated CPS: {counter / (end-start):.2f}")
 
 
 def get_cps():
@@ -105,12 +119,12 @@ root.title("Michael's Auto Clicker")
 
 tk.Label(root, text="Game Window:").grid(row=0, column=0, padx=5, pady=5)
 window_entry = tk.Entry(root)
-window_entry.insert(0,"GRIM CLICKER")
+window_entry.insert(0,"Clicker Heroes")
 window_entry.grid(row=0, column=1, padx=5, pady=5)
 
 tk.Label(root, text="Clicks Per Second:").grid(row=1, column=0, padx=5, pady=5)
 cps_entry = tk.Entry(root)
-cps_entry.insert(0,"500")
+cps_entry.insert(0,"5000")
 cps_entry.grid(row=1, column=1, padx=5, pady=10)
 
 tk.Label(root, text=f"Toggle Hotkey: [ {keybind_toggle} ]").grid(row=2, column=0, padx=5, pady=5)
@@ -122,8 +136,8 @@ status_label.grid(row=3, column=0, columnspan=2, pady=5)
 start_button = ttk.Button(root, text="✅ Start", command=start_bot)
 start_button.grid(row=4, column=0, padx=5, pady=5)
 
-pause_button = ttk.Button(root, text="🚫 Quit", command=root.destroy)
-pause_button.grid(row=4, column=1, padx=5, pady=5)
+quit_button = ttk.Button(root, text="🚫 Quit", command=root.destroy)
+quit_button.grid(row=4, column=1, padx=5, pady=5)
 
 root.mainloop()
 
