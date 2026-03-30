@@ -24,7 +24,7 @@ keybind_toggle = '.'
 bot_running = True
 active = False
 delay_cpu = 0.1
-MAX_CPS = 5000
+MAX_CPS = 250
 
 
 
@@ -85,7 +85,7 @@ def auto_clicker():
             continue
         
         cps = min(cps, MAX_CPS) # This limits the cps to MAX_CPS to prevent outragous numbers and accidentally locking the cpu.
-        delay = max(0.002, 1/cps) # Never below 2ms
+        delay = max(0.001, 1/cps) # Never below 1ms
         
         click_event(hwnd, WM_LBUTTONDOWN, MK_LBUTTON, lparam)
         time.sleep(delay)
@@ -119,12 +119,12 @@ root.title("Michael's Auto Clicker")
 
 tk.Label(root, text="Game Window:").grid(row=0, column=0, padx=5, pady=5)
 window_entry = tk.Entry(root)
-window_entry.insert(0,"Clicker Heroes")
+window_entry.insert(0,"Window Name")
 window_entry.grid(row=0, column=1, padx=5, pady=5)
 
 tk.Label(root, text="Clicks Per Second:").grid(row=1, column=0, padx=5, pady=5)
 cps_entry = tk.Entry(root)
-cps_entry.insert(0,"5000")
+cps_entry.insert(0,"60")
 cps_entry.grid(row=1, column=1, padx=5, pady=10)
 
 tk.Label(root, text=f"Toggle Hotkey: [ {keybind_toggle} ]").grid(row=2, column=0, padx=5, pady=5)
