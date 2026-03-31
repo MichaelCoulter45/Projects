@@ -17,7 +17,7 @@ root.title("Michael's Auto Clicker")
 
 tk.Label(root, text="Game Window:").grid(row=0, column=0, padx=5, pady=5)
 window_entry = tk.Entry(root)
-window_entry.insert(0,"Window Name")
+window_entry.insert(0,"Steam")
 window_entry.grid(row=0, column=1, padx=5, pady=5)
 
 tk.Label(root, text="Clicks Per Second:").grid(row=1, column=0, padx=5, pady=5)
