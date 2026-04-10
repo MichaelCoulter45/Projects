@@ -16,28 +16,58 @@ DUE: APRIL 14
 <body>
     <!-- Navigation Ribbon -->
     <div class="navigation-ribbon">
-        <a href="home.html" type="link" class="nav-link">Home</a>
-        <a href="projects.html" class="nav-link">Projects</a>
-        <a href="about.html" class="nav-link">About Me</a>
-        <a href="contact.html" class="nav-link">Contact</a>
+        <div class="nav-container">
+            <h2 class="name">Michael Coulter</h2>
+            <div class="nav-links">
+                <a href="home.html">Home</a>
+                <a href="projects.html">Projects</a>
+                <a href="about.html">About Me</a>
+                <a href="contact.html">Contact</a>
+            </div>
+        </div>
     </div>
+    <!-- Header -->
     <div class="page-header">
-        <h1>Home Page</h1>
+        <h1>Hi, I'm Michael</h1>
+        <p>I'm a Software Developer focused on automation, game systems, and performance driven tools.</p>
+        <a href="projects.html" class="projects-btn">View My Work</a>
+        
     </div>
-    <!-- The main section of the page -->
-    <div class="main-container">
-        <p>
-            This is a paragraph...
-        </p>
-    </div>
-    
-    <!-- Video and Ribbon container 
+    <!-- Video and Ribbon container -->
     <div class="video-ribbon">
         <video autoplay muted loop playsinline class="bg-video">
             <source src="your-video.mp4" type="video/mp4">
             Your browser does not support the video tag.
         </video>
-    -->
+    </div>
+    <!-- Main Content -->
+    <div class="main-container">
+        <div class="projects-section">
+            <h2>Featured Projects</h2>
+            <div class="project-card">
+                <h3>Game Automation Bot</h3>
+                <p>Automated gameplay actions with input simulation and optimization logic.</p>
+            </div>
+            <div class="project-card">
+                <h3>Data Mining Project</h3>
+                <p>Analyzed datasets using classification models and pattern extraction.</p>
+            </div>
+        </div>
+        <div class="skills-section">
+            <h2>Skills</h2>
+            <p>Python • Java • JavaScript • HTML • CSS • Machine Learning • Data Mining</p>
+        </div>
+        <div class="about-preview">
+            <h2>About Me</h2>
+            <p>
+                I'm a computer science student who enjoys building efficient systems,
+                especially in automation and game environments.
+            </p>
+        </div>
+        <div class="contact-section">
+            <h2>Contact</h2>
+            <p>Email: michaeljohncoulter@gmail.com</p>
+        </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
 </body>
