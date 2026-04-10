@@ -8,7 +8,6 @@ body {
     position: fixed;
     top: 0;
     width: 100%;
-    background: rgba(15, 23, 42, 1);
     backdrop-filter: blur(10px);
     padding: 10px 0;
     z-index: 1000;
@@ -44,16 +43,41 @@ body {
     padding: 5px;
     margin: 0;
 }
-.video-container {
-    position: relative;
+.demo-video1 {
+    position: absolute;
+    align-items: center;
+    top: 0;
+    left: 0;
     width: 100%;
-    height: 300px;
+    height: 60vh;
     overflow: hidden;
+    z-index: -1;
 }
-.bg-video {
+.demo-video1 iframe {
     width: 100%;
-    height: 100%;
-    object-fit: cover;
+    height: 56.25vw;
+    min-height: 100vh;
+    min-width: 177.77vh;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+.demo-video1::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        to right,
+        #0f172a 0%,
+        transparent 20%,
+        transparent 80%,
+        #0f172a 100%
+    );
 }
 .main-container {
     width: 80%;
