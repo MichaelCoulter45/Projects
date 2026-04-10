@@ -79,6 +79,13 @@ body {
         #0f172a 100%
     );
 }
+.demo-video1::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 1;
+}
 .main-container {
     width: 80%;
     margin: 40px auto;
