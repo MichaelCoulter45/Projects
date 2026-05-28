@@ -8,13 +8,9 @@ import dxcam, cv2
 import pyautogui
 import easyocr
 import numpy as np
+import enchant
 
 
-# 1. Needs a typing bot
-# 2. Needs a screen reading bot to know what to type
-# 3. ----- Implement a GUI to make it interesting and new user friendly.
-# 4. Shave the capture area to reduce cpu load and time
-# 5. Have the screen reader stop and execute once it finds any match. --> increasing speed
 
 # Keybinds
 keybind_toggle = '.'
@@ -25,7 +21,7 @@ bot_running = True
 bot_active = False
 delay_cpu = 0.5
 
-
+d = enchant.Dict("en_US")
 
 ################# Functions #################
 def start_bot():
@@ -56,6 +52,80 @@ def toggle_bot():
         status_label.config(text="⏸️ PAUSED", fg="blue")
 
 
+
+
+################# Typing #################
+def fix_muw(word):
+    import itertools
+    
+    # Define possible swaps
+    swaps = [
+        ('n', 'm'),
+        ('m', 'n'),
+        ('u', 'w'),
+        ('w', 'u'),
+        ('vv', 'w'),
+        ('e', 'o'),   
+        ('o', 'e'),
+    ]
+    
+    candidates = set()
+    candidates.add(word)
+    
+    # Try single swaps
+    for old, new in swaps:
+        candidates.add(word.replace(old, new))
+    
+    
+    # Triple swaps
+    for (o1,n1),(o2,n2),(o3,n3) in itertools.combinations(swaps, 3):
+        candidate = word.replace(o1,n1).replace(o2,n2).replace(o3,n3)
+        candidates.add(candidate)
+    
+    for candidate in candidates:
+        if is_valid_word(candidate):
+            return candidate
+    
+    return None  # return None so caller knows it failed
+
+
+
+custom_words = {'beadwork', 'welcomer', 'wormhole', 'beadwork', 'dimmers'}  
+d = enchant.Dict("en_US")
+
+def is_valid_word(word):
+    return d.check(word) or word in custom_words
+
+
+
+def get_best_word(word):
+    if is_valid_word(word):
+        return word.strip()
+    
+    # Try swaps first before enchant
+    fixed = fix_muw(word)
+    if fixed and is_valid_word(fixed):
+        return fixed.strip()
+    
+    # Only fall back to enchant if swaps failed
+    suggestions = d.suggest(word)
+    if suggestions:
+        top = suggestions[0].lower().strip()
+        if abs(len(top) - len(word)) <= 2:
+            return top
+    
+    # Last resort: return the swap result even if not in dictionary
+    if fixed:
+        return fixed
+    
+    return None
+
+
+
+
+
+
+################# Main Loop #################
 def typer_bot():
     window_name = window_entry.get()
     hwnd = win32gui.FindWindow(None, window_name)
@@ -63,43 +133,75 @@ def typer_bot():
     width = right - left
     height = bottom - top
     crop_region = (
-        left + int(width* 0.1),
-        top + int(height * 0.2),
-        right - int(width * 0.1),
-        bottom - int(height * 0.1)
+        left + int(width * 0.05),
+        top + int(height * 0.35),
+        right - int(width * 0.05),
+        bottom - int(height * 0.12)
     )
-    # Camera Capture
     camera = dxcam.create()
-    reader = easyocr.Reader(['en'], gpu=False) # No dedicated GPU..
-    camera.start(region=(crop_region),target_fps=15)
+    reader = easyocr.Reader(['en'], gpu=True)
+    camera.start(region=crop_region, target_fps=60)
     history = {}
-    
     while True:
         if bot_active:
             current_time = time.time()
             frame = camera.get_latest_frame()
             if frame is not None:
                 gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
-                _, binary_frame = cv2.threshold(gray, 245, 255, cv2.THRESH_BINARY)
-                # OCR on the latest frame
+                
+                binary_frame = cv2.resize(gray, None, fx=10, fy=10, interpolation=cv2.INTER_CUBIC)
+                kernel = np.array([[0, 0, 0],
+                    [-1, 5, -1],
+                    [0, 0, 0]])
+                binary_frame = cv2.filter2D(binary_frame, -1, kernel)
+                _, binary_frame = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY)
+                
+                cv2.imwrite("./debug_frame.png", binary_frame)
+                # Remove contrast_ths/adjust_contrast that suppresses OCR
                 results = reader.readtext(
                     binary_frame,
-                    detail=0,
+                    detail=1,
                     paragraph=False,
-                    contrast_ths=0.1,
-                    adjust_contrast=0.0
-                    )
-                # Debugging  View
-                cv2.imshow("Debug View", binary_frame)
-                cv2.waitKey(1)
+                    allowlist='abcdefghijklmnopqrstuvwxyz',
+                )
                 
-                for word in results:
+                best_fallback = None
+                best_fallback_conf = 0
+
+                for (bbox, word, confidence) in results:
+                    # print(f"RAW: '{word}' conf={confidence:.2f}") 
                     word = word.lower().strip()
-                    if word not in history:
-                        print(f"Printing: {word}")
-                        pyautogui.write(word)
-                        pyautogui.press("delete")
-                        history[word] = current_time
+                    if len(word) < 2:
+                        continue
+
+                    if confidence >= 0.65:
+                        best = get_best_word(word)
+                        if best and best not in history:
+                            print(f"OCR: {word} → Typing: {best}")
+                            win32gui.SetForegroundWindow(hwnd)
+                            time.sleep(0.01)
+                            pyautogui.write(best)
+                            pyautogui.press("backspace", presses=len(best))
+                            pyautogui.write(word)
+                            pyautogui.press("backspace", presses=len(word))
+                            history[best] = current_time
+
+                    else:
+                        # Track best low-confidence read as fallback
+                        best = get_best_word(word)
+                        if best and confidence > best_fallback_conf:
+                            best_fallback = best
+                            best_fallback_conf = confidence
+
+                # After the loop, if nothing was typed and we have a fallback
+                if best_fallback and best_fallback not in history:
+                    print(f"FALLBACK ({best_fallback_conf:.2f}): {best_fallback}")
+                    win32gui.SetForegroundWindow(hwnd)
+                    time.sleep(0.01)
+                    pyautogui.write(best_fallback)
+                    pyautogui.press("backspace", presses=len(best_fallback))
+                    history[best_fallback] = current_time
+                    
                 history = {w: t for w, t in history.items() if current_time - t < 3}
         else:
             time.sleep(delay_cpu)
@@ -111,6 +213,7 @@ def typer_bot():
 
 ################### GUI ###################
 root = tk.Tk()
+
 root.title("Michael's Type Knight Bot")
 
 tk.Label(root, text="Game Window:").grid(row=0,column=0,padx=5,pady=5)
@@ -131,7 +234,3 @@ quit_button.grid(row=4,column=1,padx=5,pady=5)
 
 root.mainloop()
 ####################################
-# def main():
-
-# if __name__ == "__main__":
-#     main()
