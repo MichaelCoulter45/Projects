@@ -58,6 +58,10 @@ def toggle_bot():
 def fix_muw(word):
     import itertools
     
+    quick_fix = word.replace('u', 'w')
+    if is_valid_word(quick_fix):
+        return quick_fix
+    
     # Define possible swaps
     swaps = [
         ('n', 'm'),
@@ -149,12 +153,12 @@ def typer_bot():
             if frame is not None:
                 gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
                 
-                binary_frame = cv2.resize(gray, None, fx=10, fy=10, interpolation=cv2.INTER_CUBIC)
+                binary_frame = cv2.resize(gray, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
                 kernel = np.array([[0, 0, 0],
                     [-1, 5, -1],
                     [0, 0, 0]])
                 binary_frame = cv2.filter2D(binary_frame, -1, kernel)
-                _, binary_frame = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY)
+                _, binary_frame = cv2.threshold(gray, 210, 255, cv2.THRESH_BINARY)
                 
                 cv2.imwrite("./debug_frame.png", binary_frame)
                 # Remove contrast_ths/adjust_contrast that suppresses OCR
@@ -171,36 +175,48 @@ def typer_bot():
                 for (bbox, word, confidence) in results:
                     # print(f"RAW: '{word}' conf={confidence:.2f}") 
                     word = word.lower().strip()
+                    if word and word != '':
+                        suggestions = d.suggest(word)
+                        if suggestions:
+                            suggestions = suggestions[0].lower().strip()
+                        else:
+                            suggestions = 'blocked'
                     if len(word) < 2:
                         continue
 
-                    if confidence >= 0.65:
+                    if confidence >= 0.70:
                         best = get_best_word(word)
                         if best and best not in history:
-                            print(f"OCR: {word} → Typing: {best}")
+                            
                             win32gui.SetForegroundWindow(hwnd)
                             time.sleep(0.01)
+                            print(f"Best: {best} | Word: {word} | Sugg: {suggestions}\n")
                             pyautogui.write(best)
                             pyautogui.press("backspace", presses=len(best))
+                            
                             pyautogui.write(word)
                             pyautogui.press("backspace", presses=len(word))
+                            
+                            pyautogui.write(suggestions)
+                            pyautogui.press("backspace", presses=len(suggestions))
+                            
                             history[best] = current_time
 
-                    else:
-                        # Track best low-confidence read as fallback
-                        best = get_best_word(word)
-                        if best and confidence > best_fallback_conf:
-                            best_fallback = best
-                            best_fallback_conf = confidence
+                    # else:
+                    #     # Track best low-confidence read as fallback
+                    #     best = get_best_word(word)
+                    #     if best and confidence > best_fallback_conf:
+                    #         best_fallback = best
+                    #         best_fallback_conf = confidence
 
                 # After the loop, if nothing was typed and we have a fallback
-                if best_fallback and best_fallback not in history:
-                    print(f"FALLBACK ({best_fallback_conf:.2f}): {best_fallback}")
-                    win32gui.SetForegroundWindow(hwnd)
-                    time.sleep(0.01)
-                    pyautogui.write(best_fallback)
-                    pyautogui.press("backspace", presses=len(best_fallback))
-                    history[best_fallback] = current_time
+                # if best_fallback and best_fallback not in history:
+                #     print(f"FALLBACK ({best_fallback_conf:.2f}): {best_fallback}")
+                #     win32gui.SetForegroundWindow(hwnd)
+                #     time.sleep(0.01)
+                #     pyautogui.write(best_fallback)
+                #     pyautogui.press("backspace", presses=len(best_fallback))
+                #     history[best_fallback] = current_time
                     
                 history = {w: t for w, t in history.items() if current_time - t < 3}
         else:
