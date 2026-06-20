@@ -119,12 +119,19 @@ class BotController:
     #
     
     
-    # def navigation(self):
-        
-    #
-    def run_main_loop(self,templates, categories, ad_button_coords, max_cycles):
-        
-    #
+# def navigation(self):
+    
+    # return
+
+# def run_main_loop(self,templates, categories, ad_button_coords, max_cycles):
+    
+    # return
+
+
+
+
+
+
 
 
 
