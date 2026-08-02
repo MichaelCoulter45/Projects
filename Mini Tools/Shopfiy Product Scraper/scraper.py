@@ -18,8 +18,8 @@ def check_for_values(value):
 
 
 
-url = 'https://us.hismileteeth.com'
-
+url = 'https://www.allbirds.com'
+# 'https://us.hismileteeth.com'
 
 input_folder = Path("input")
 input_folder.mkdir(exist_ok=True)
@@ -29,6 +29,8 @@ output_folder.mkdir(exist_ok=True)
 
 
 r = requests.get(url + "/products.json")
+print(r.status_code)
+print(r.text[:500])
 r.raise_for_status()
 
 
@@ -158,3 +160,5 @@ def main():
     
 if __name__ == "__main__":
     main()
+
+
