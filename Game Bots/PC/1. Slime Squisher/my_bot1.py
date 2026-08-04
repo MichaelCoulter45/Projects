@@ -13,7 +13,7 @@ from pymem import Pymem
 
 #### GOALS ####
 # Reach at least 30 fps for bot frames..
-# Thread everything...
+# Threading
 ###############
 
 # ------------ CONFIG ------------ #
