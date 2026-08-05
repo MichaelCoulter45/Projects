@@ -1,17 +1,11 @@
 # TreasureChestClicker.py
-import os
 import sys
 import time
 import threading
 import keyboard
 import win32api
 import win32con
-import win32gui
-
-import numpy as np
 import pyautogui
-import cv2
-import dxcam
 
 
 # Goals:

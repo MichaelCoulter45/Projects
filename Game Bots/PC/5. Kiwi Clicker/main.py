@@ -4,7 +4,6 @@ import keyboard
 import sys
 import pyautogui
 import random
-import logging
 
 #############################################
 window_title = "Kiwi Clicker"

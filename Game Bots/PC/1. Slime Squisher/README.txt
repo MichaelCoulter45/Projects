@@ -1,4 +1,4 @@
-# Slime Squisher clicker bot
+# Slime Squisher Slime Clicker
 
 ## Overview
 Matches templates to slimes and clicks the center of the match to squish them. The bot will continue to squish slimes until the user stops it.
