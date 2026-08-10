@@ -23,13 +23,20 @@ delay_mouse_move = 0.01
 def swipe_game_screen():
     global bot_active
     window_size = get_game_window_size(game_window_title)
-    x = start_x = window_size['x'] + 80
-    y = start_y = window_size['y'] + 45
-    end_x = window_size['width'] - 500
-    end_y = window_size['height'] - 45
+    x = start_x = window_size['x']
+    y = start_y = window_size['y'] + 50
+    end_x = window_size['width'] - (window_size['width']*0.20)
+    end_y = window_size['height']
     while running:
         if bot_active:
-            win32api.SetCursorPos((random.randint(start_x, end_x), random.randint(start_y, end_y)))
+            win32api.SetCursorPos((x,y))
+            if x <= end_x:
+                x = x + 50
+            else:
+                x = start_x
+                y = y + 150
+            if y >= end_y:
+                y = start_y
             time.sleep(delay_mouse_move)
         else:
             time.sleep(delay_cpu)
@@ -90,52 +97,6 @@ if __name__ == "__main__":
 
 # Scrap Code
 """
-# Linear
-#############################################################
-def swipe_game_screen():
-    global bot_active
-    window_size = get_game_window_size(game_window_title)
-    x = start_x = window_size['x'] + 80
-    y = start_y = window_size['y'] + 45
-    while running:
-        if bot_active:
-            win32api.SetCursorPos((x,y))
-            y += 15
-            time.sleep(0.0000000001)
-            # Reset Curser Postions #
-            if y >= window_size['height'] - 50: 
-                y = start_y
-                x += 75
-                
-            if x >= window_size['width'] - 475:
-                x,y = start_x, start_y
-        else:
-            time.sleep(delay_cpu)
-#############################################################
 
 
-
-
-
-
-
-
-
-# Random
-#############################################################
-def swipe_game_screen():
-    global bot_active
-    window_size = get_game_window_size(game_window_title)
-    x = start_x = window_size['x'] + 80
-    y = start_y = window_size['y'] + 45
-    end_x = window_size['width'] - 450
-    end_y = window_size['height'] - 45
-    while running:
-        if bot_active:
-            win32api.SetCursorPos((random.randint(start_x, end_x), random.randint(start_y, end_y)))
-            time.sleep(delay_mouse_move)
-        else:
-            time.sleep(delay_cpu)
-#############################################################
 """
-
