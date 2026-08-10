@@ -20,8 +20,3 @@ Matches templates to slimes and clicks the center of the match to squish them. T
 - threading
 - Pymem
 
-## Screenshots
-
-(image)
-
-(image)

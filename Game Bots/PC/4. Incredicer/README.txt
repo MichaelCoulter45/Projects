@@ -16,9 +16,3 @@ Moves the mouse all around the playable space randomly which rolls dice the mous
 - sys
 - random
 
-
-## Screenshots
-
-(image)
-
-(image)
