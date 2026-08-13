@@ -1,15 +1,12 @@
 # my_bot1.py
 
 import pyautogui
-import cv2
-import dxcam
 import os
 import sys
 import time
 import keyboard
 import random
 import threading
-from pymem import Pymem
 
 #### GOALS ####
 # Reach at least 30 fps for bot frames..
