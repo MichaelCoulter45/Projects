@@ -10,4 +10,6 @@ Make a tool to interpret the data into stats:
     goblin type averages
     total found
     goblin types found
+
+Make stopwatch with pause/play and record the time inbetween goblin finds.
 """
