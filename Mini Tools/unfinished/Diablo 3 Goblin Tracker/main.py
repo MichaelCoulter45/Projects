@@ -11,5 +11,28 @@ Make a tool to interpret the data into stats:
     total found
     goblin types found
 
-Make stopwatch with pause/play and record the time inbetween goblin finds.
 """
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def main():
+    k = gui
+    return k
+
+
+
+
+
+if __name__ == "__main__":
+    main()
