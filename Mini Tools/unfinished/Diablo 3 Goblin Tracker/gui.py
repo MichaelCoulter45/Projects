@@ -1,7 +1,8 @@
 import tkinter as tk
 from tkinter import ttk
-
-root = tk.Tk()
+from pathlib import Path
+import csv
+from datetime import datetime
 
 """ 
 Make a simple gui with tkinter
@@ -9,56 +10,78 @@ Make a button that adds to the CSV dataset of what goblin was found and what tim
 
 
 """
+root = tk.Tk()
+BASE_DIR = Path(__file__).resolve().parent
+IMG_DIR = BASE_DIR / "img"
+DS_DIR = BASE_DIR / "dataset"
+DS = DS_DIR / "Diablo 3 goblin tracker.csv"
+DS_EXISTS = DS.exists()
 
+# Goblin Types
+goblins = [
+    "Treasure Goblin",
+    "Blood Thief",
+    "Odious Collector",
+    "Gem Hoarder",
+    "Malevolent Tormentor",
+    "Gelatinous Sire",
+    "Menagerist Goblin",
+    "Gilded Baron",
+    "Insufferable Miscreant",
+    "Rainbow Goblin",
+]
 ####################################################
-def track_goblin(goblin_type:str):
+def track_goblin(goblin_type:str) -> None:
     """ Records the date, time, and goblin type to the datasheet and console. """
-    print("Clicked!")
-
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    time = [timestamp, "Event_A", 42]
+    
+    if goblin_type not in goblins:
+        raise ValueError(f"Unknown goblin type: {goblin_type}")
+    print(f"Found {goblin_type}!")
+    # Writes to CSV
+    with DS.open(mode="a", newline="", encoding="utf-8") as file:
+        writer = csv.writer(file)
+        writer.writerow(f"{time}, {goblin_type}")
+        
+        if not DS_EXISTS:
+            writer.writerow(["Timestamp", "Goblin"])
 ####################################################
 root.title("Goblin Tracker")
-root.configure(background="yellow")
-root.minsize(200, 200)
-root.maxsize(500, 500)
-root.geometry("300x300+50+50")
-
-# goblin_type images
-img_Treasure_Goblin         = tk.PhotoImage(file=r"./img/Treasure Goblin.png")
-img_Blood_Thief             = tk.PhotoImage(file=r"./img/Blood Thief.png")
-img_Odious_Collector        = tk.PhotoImage(file=r"./img/Odious Collector.png")
-img_Gem_Hoarder             = tk.PhotoImage(file=r"./img/Gem Hoarder.png")
-img_Malevolent_Tormentor    = tk.PhotoImage(file=r"./img/Malevolent Tormentor.png")
-img_Rainbow_Goblin          = tk.PhotoImage(file=r"./img/Rainbow Goblin.png")
-img_Menagerist_Goblin       = tk.PhotoImage(file=r"./img/Menagerist Goblin.png")
-img_Gilded_Baron            = tk.PhotoImage(file=r"./img/Gilded Baron.png")
-img_Insufferable_Miscreant  = tk.PhotoImage(file=r"./img/Insufferable Miscreant.png")
-img_Gelatinous_Sire         = tk.PhotoImage(file=r"./img/Gelatinous Sire.png")
-
-# Buttons
-btn_Treasure_Goblin = tk.Button(root, image=img_Treasure_Goblin, command=lambda: track_goblin("Treasure_Goblin"))
-btn_Treasure_Goblin.pack(pady=20)
-# btn_Blood_Thief
-# btn_Odious_Collector
-# btn_Gem_Hoarder
-# btn_Malevolent_Tormentor
-# btn_Rainbow_Goblin
-# btn_Menagerist_Goblin
-# btn_Gilded_Baron
-# btn_Insufferable_Miscreant
-# btn_Gelatinous_Sire
+root.configure(background="gray")
 
 
+
+############# Buttons #############
+images = {}
+buttons = {}
+columns = 3
+for index, name in enumerate(goblins):
+    # Load images
+    img_path = IMG_DIR / f"{name}.png"
+    images[name] = tk.PhotoImage(file=str(img_path))
+    
+    # Creating buttons
+    btn = tk.Button(
+        root,
+        image=images[name],
+        command=lambda g=name: track_goblin(g)
+    )
+    
+    # Rows and Columns
+    row, col = divmod(index, columns)
+    
+    # Centering the last goblin
+    if index == len(goblins) - 1 and len(goblins) % columns == 1:
+        col = 1
+    
+    btn.grid(row=row, column=col, padx=5, pady=5)
+    buttons[name] = btn
 
 
 
 
 
 
-
-
-
-
-
+#####
 root.mainloop()
-
-
