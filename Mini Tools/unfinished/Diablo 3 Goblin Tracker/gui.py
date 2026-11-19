@@ -1,87 +1,40 @@
+# gui.py
+# tkinter window and buttons
 import tkinter as tk
-from tkinter import ttk
-from pathlib import Path
-import csv
-from datetime import datetime
+from data import GOBLINS, IMG_DIR, track_goblin, undo_last
 
-""" 
-Make a simple gui with tkinter
-Make a button that adds to the CSV dataset of what goblin was found and what time it was found.
+class GoblinApp:
+    def __init__(self, root: tk.Tk, columns: int = 3):
+        self.root = root
+        root.title("Goblin Tracker")
+        root.configure(background="gray")
 
+        self.images = {}   # keep references or tkinter garbage-collects them
+        for index, name in enumerate(GOBLINS):
+            self.images[name] = tk.PhotoImage(file=str(IMG_DIR / f"{name}.png"))
+            row, col = divmod(index, columns)
+            if index == len(GOBLINS) - 1 and len(GOBLINS) % columns == 1:
+                col = 1
+            tk.Button(
+                root, image=self.images[name],
+                command=lambda g=name: self.on_found(g),
+            ).grid(row=row, column=col, padx=5, pady=5)
 
-"""
-root = tk.Tk()
-BASE_DIR = Path(__file__).resolve().parent
-IMG_DIR = BASE_DIR / "img"
-DS_DIR = BASE_DIR / "dataset"
-DS = DS_DIR / "Diablo 3 goblin tracker.csv"
-DS_EXISTS = DS.exists()
+        self.status = tk.Label(root, text="", bg="gray")
+        self.status.grid(row=row + 1, column=0, columnspan=columns)
+        tk.Button(root, text="UNDO LAST ENTRY", command=self.on_undo).grid(
+            row=row + 2, column=0, padx=5, pady=5)
+        tk.Button(root, text="SHOW CHARTS", command=self.on_charts).grid(
+            row=row + 2, column=1, padx=5, pady=5)
 
-# Goblin Types
-goblins = [
-    "Treasure Goblin",
-    "Blood Thief",
-    "Odious Collector",
-    "Gem Hoarder",
-    "Malevolent Tormentor",
-    "Gelatinous Sire",
-    "Menagerist Goblin",
-    "Gilded Baron",
-    "Insufferable Miscreant",
-    "Rainbow Goblin",
-]
-####################################################
-def track_goblin(goblin_type:str) -> None:
-    """ Records the date, time, and goblin type to the datasheet and console. """
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    time = [timestamp, "Event_A", 42]
-    
-    if goblin_type not in goblins:
-        raise ValueError(f"Unknown goblin type: {goblin_type}")
-    print(f"Found {goblin_type}!")
-    # Writes to CSV
-    with DS.open(mode="a", newline="", encoding="utf-8") as file:
-        writer = csv.writer(file)
-        writer.writerow(f"{time}, {goblin_type}")
-        
-        if not DS_EXISTS:
-            writer.writerow(["Timestamp", "Goblin"])
-####################################################
-root.title("Goblin Tracker")
-root.configure(background="gray")
+    def on_found(self, goblin):
+        track_goblin(goblin)
+        self.status.config(text=f"Logged: {goblin}")
 
+    def on_undo(self):
+        removed = undo_last()
+        self.status.config(text=f"Removed: {removed[1]}" if removed else "Nothing to undo")
 
-
-############# Buttons #############
-images = {}
-buttons = {}
-columns = 3
-for index, name in enumerate(goblins):
-    # Load images
-    img_path = IMG_DIR / f"{name}.png"
-    images[name] = tk.PhotoImage(file=str(img_path))
-    
-    # Creating buttons
-    btn = tk.Button(
-        root,
-        image=images[name],
-        command=lambda g=name: track_goblin(g)
-    )
-    
-    # Rows and Columns
-    row, col = divmod(index, columns)
-    
-    # Centering the last goblin
-    if index == len(goblins) - 1 and len(goblins) % columns == 1:
-        col = 1
-    
-    btn.grid(row=row, column=col, padx=5, pady=5)
-    buttons[name] = btn
-
-
-
-
-
-
-#####
-root.mainloop()
+    def on_charts(self):
+        from visualization import show_charts   # imported here, so matplotlib loads only when needed
+        show_charts()

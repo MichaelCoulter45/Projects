@@ -1,13 +1,15 @@
-import pandas as pd
-import matplotlib as mpl
+# visualization.py
+# charts built from the csv
+from collections import Counter
+import matplotlib.pyplot as plt
+from data import read_entries
 
-
-
-
-""" 
-Make a tool to interpret the data into stats:
-    average / hour
-    goblin type averages
-    total found
-    goblin types found
-"""
+def show_charts():
+    rows = read_entries()
+    if not rows:
+        return
+    counts = Counter(goblin for _, goblin in rows)
+    plt.barh(list(counts.keys()), list(counts.values()))
+    plt.title("Goblins found")
+    plt.tight_layout()
+    plt.show()
