@@ -1,12 +1,13 @@
 # main.py
-# main entry point for the program
-import tkinter as tk
-from gui import GoblinApp
+# The main file that holds everything together
+import gui
 
-def main():
-    root = tk.Tk()
-    GoblinApp(root)
-    root.mainloop()
+
+def main() -> None:
+    gui.run_gui()
+
+
+
 
 if __name__ == "__main__":
     main()
