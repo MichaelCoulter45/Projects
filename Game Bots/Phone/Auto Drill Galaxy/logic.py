@@ -1,6 +1,5 @@
 # logic.py
 # 
-import dxcam
 import subprocess
 import time
 import cv2
@@ -8,19 +7,11 @@ import numpy as np
 
 
 
-
-
-def check_time():
-    """ Checks the time spent on planet """
-    
-
-
-def check_planet():
-    """ Checks current planet """
-    
-
-
+# Hotkeys
+hotkey_pause = '.'
+#############################
 def find(screen, template_path, threshold=0.85):
+    """ Find template match """
     tmpl = cv2.imread(template_path, cv2.IMREAD_GRAYSCALE)
     gray = cv2.cvtColor(screen, cv2.COLOR_BGR2GRAY)
     res = cv2.matchTemplate(gray, tmpl, cv2.TM_CCOEFF_NORMED)
@@ -30,11 +21,15 @@ def find(screen, template_path, threshold=0.85):
         return (max_loc[0] + w // 2, max_loc[1] + h // 2)  # center point
     return None
 
-
-
 def screenshot():
     png = subprocess.check_output(['adb', 'exec-out', 'screncap', '-p'])
     return cv2.imdecode(np.frombuffer(png, np.uint8), cv2.IMREAD_COLOR)
+
+#############################
+
+def check_planet():
+    """ Checks current planet """
+    
 
 
 def tap(x,y):
@@ -48,8 +43,12 @@ def click_if_found(screen, template, threshold=0.85):
         return True
     return False
 
+#############################
+
 def run():
     while True:
+        if not active:
+            return
         screen = screenshot()
         
         if click_if_found(screen, "templates/prestige_ready.png"):
@@ -62,6 +61,3 @@ def run():
             time.sleep(0.5)
         else:
             time.sleep(2.0)  # nothing actionable, just wait
-
-if __name__ == "__main__":
-    run()
