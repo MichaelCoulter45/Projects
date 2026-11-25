@@ -6,6 +6,7 @@ import cv2
 import numpy as np
 
 
+bot_active = False
 
 # Hotkeys
 hotkey_pause = '.'
@@ -26,6 +27,10 @@ def screenshot():
     return cv2.imdecode(np.frombuffer(png, np.uint8), cv2.IMREAD_COLOR)
 
 #############################
+def toggle_bot(bot_active):
+    bot_active = not bot_active
+    return bot_active
+
 
 def check_planet():
     """ Checks current planet """
@@ -47,8 +52,8 @@ def click_if_found(screen, template, threshold=0.85):
 
 def run():
     while True:
-        if not active:
-            return
+        if not bot_active:
+            break
         screen = screenshot()
         
         if click_if_found(screen, "templates/prestige_ready.png"):
