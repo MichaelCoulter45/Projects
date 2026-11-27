@@ -14,5 +14,8 @@ import tkinter
 # Num of
 
 
-# Set parimeter button (like, putting in a new number for weapons and how many planets you want to automate.) 
+
+# Manual Prestige Button
+
+# Save parimeters button (like, putting in a new number for weapons and how many planets you want to automate to update the bot.) 
 

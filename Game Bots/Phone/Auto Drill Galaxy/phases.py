@@ -1,6 +1,6 @@
 # phases.py
 # 
-
+import logic
 
 """ 
 phase 0: brand new prestige, upgrade basic line
@@ -13,16 +13,21 @@ phase 5: prestige
 """
 
 
+
+
+
+
 #######################
-def phase_0():
+def new_prestige():
     """ brand new prestige, upgrade basic line """
-def phase_1():
+def buy_weapons():
     """ buy weapons """
-def phase_2():
+def upgrade_last_weapon():
     """ upgrade last weapon """
-def phase_3():
+def upgrade_all_weapons():
     """ upgrade all weapons """
-def phase_4():
+def check_for_prestige():
     """ check for prestige requirements """
-def phase_5():
+def prestige():
     """ prestige """
+#######################
