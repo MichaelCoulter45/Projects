@@ -1,6 +1,7 @@
 # phases.py
 # 
 import logic
+import time
 
 """ 
 phase 0: brand new prestige, upgrade basic line
@@ -15,9 +16,16 @@ phase 5: prestige
 
 
 
-
-
+phase = "idle"
+def set_phase():
+    """ Sets the bot to a certain phase """
 #######################
+def idle():
+    """ Puts the bot on idle and waiting """
+    phase = "idle"
+    time.sleep(1)
+    return phase
+
 def new_prestige():
     """ brand new prestige, upgrade basic line """
 def buy_weapons():
