@@ -51,8 +51,7 @@ def show_mouse_pos(bot_active:threading.Event, mouse_pos:threading.Event) -> Non
         mouse_pos.set()
         print(f"{pyautogui.displayMousePosition()}")
 
-def tap(x:int,y:int,repeat=1) -> None -> None:
-    """ Simuilates a tap via adb """
+def tap(x:int,y:int,repeat=1) -> None:
     """ Simulates a tap in bluestacks at (x,y) position and repeats {amount} times."""
     for _ in range(repeat):
         subprocess.run(['adb', 'shell', 'input', 'tap', str(x), str(y)])
