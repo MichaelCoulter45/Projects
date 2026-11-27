@@ -12,26 +12,12 @@ import threading
 
 import decider
 import gui
+import logic
 
 
-
-
+# Hotkeys
 hotkey_pause = '.'
-
-
-def toggle_bot(active_event:threading.Event) -> None:
-    """ Toggles the bot active/inactive """
-    if active_event.is_set():
-        active_event.clear()
-        print(f"Bot PAUSED")
-    else:
-        active_event.set()
-        print(f"Bot ACTIVE")
-
-def quit_bot():
-    """ Ends the program """
-    
-
+hotkey_show_mouse_pos = ']'
 
 
 
@@ -40,11 +26,13 @@ def run() -> None:
     """ The main bot loop """
     bot_active = threading.Event()
     bot_active.set()
+    mouse_pos = threading.Event()
     
-    keyboard.add_hotkey(hotkey_pause, toggle_bot, args=(bot_active,))
+    keyboard.add_hotkey(hotkey_pause, logic.toggle_bot, args=(bot_active,))
+    keyboard.add_hotkey(hotkey_show_mouse_pos, logic.show_mouse_pos, args=(bot_active, mouse_pos))
     while True:
         while bot_active.is_set():
-            print("1 Second")
+            print(f"\tActive")
             time.sleep(1)
             ###
         

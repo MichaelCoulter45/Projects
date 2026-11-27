@@ -4,12 +4,29 @@ import subprocess
 import time
 import cv2
 import numpy as np
+import pyautogui
+import threading
 
 
 bot_active = False
 
-# Hotkeys
-hotkey_pause = '.'
+
+
+
+
+############################
+def toggle_bot(active_event:threading.Event) -> None:
+    """ Toggles the bot active/inactive """
+    if active_event.is_set():
+        active_event.clear()
+        print(f"Bot PAUSED")
+    else:
+        active_event.set()
+        print(f"Bot ACTIVE")
+
+
+def quit_bot():
+    """ Ends the program """
 #############################
 def find(screen, template_path, threshold=0.85):
     """ Find template match """
@@ -25,18 +42,30 @@ def find(screen, template_path, threshold=0.85):
 def check_planet():
     """ Checks current planet """
     
+#############################
+def show_mouse_pos(bot_active:threading.Event, mouse_pos:threading.Event) -> None:
+    """ Displays your mouse's postion in the terminal. """
+    if  bot_active.is_set():
+        mouse_pos.clear()
+    else:
+        mouse_pos.set()
+        print(f"{pyautogui.displayMousePosition()}")
 
-
-def tap(x,y,amount=1):
-    for i in range(amount):
+def tap(x,y,amount=1) -> None:
+    """ Simulates a tap in bluestacks at (x,y) position and repeats {amount} times."""
+    for _ in range(amount):
         subprocess.run(['adb', 'shell', 'input', 'tap', str(x), str(y)])
 
 
 def click_if_found(screen, template, threshold=0.85):
+    """ Finds the matching template and clicks it. """
     pos = find(screen, template, threshold)
     if pos:
         tap(*pos)
         return True
     return False
-
 #############################
+def observatory():
+    """ Collects the observatory points """
+def mining():
+    """ Attempts the mining minigame """
